@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAXCELL - Vendas & Assistência</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins}
+body{background:linear-gradient(135deg,#0f0f12,#1a1a22);color:#fff}
+
+/* HEADER */
+header{
+background:#111;
+padding:15px 25px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+border-bottom:1px solid #222;
+}
+header h1{color:#ff4d00}
+.cart-btn{cursor:pointer;background:#ff4d00;padding:8px 15px;border-radius:20px}
+
+/* GRID */
+.grid{
+max-width:1200px;
+margin:auto;
+padding:20px;
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+gap:25px;
+}
+
+.card{
+background:#18181f;
+border-radius:15px;
+overflow:hidden;
+box-shadow:0 8px 20px rgba(0,0,0,.4);
+display:flex;
+flex-direction:column;
+}
+
+.card img{
+width:100%;
+height:220px;
+object-fit:contain;
+background:#111;
+padding:10px;
+}
+
+.card-content{padding:15px}
+.price{color:#ff4d00;font-weight:700;margin:8px 0}
+.btn{
+display:block;
+background:#ff4d00;
+text-align:center;
+padding:10px;
+border-radius:8px;
+cursor:pointer;
+margin-top:5px;
+}
+
+/* ASSISTÊNCIA */
+.assistencia{
+max-width:1000px;
+margin:50px auto;
+background:#18181f;
+padding:25px;
+border-radius:15px;
+box-shadow:0 8px 20px rgba(0,0,0,.4);
+text-align:center;
+}
+
+.assistencia h3{color:#ff4d00;margin-bottom:10px}
+
+/* MODAL */
+.modal{
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,.8);
+display:none;
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+.modal-content{
+background:#1c1c22;
+padding:20px;
+border-radius:15px;
+width:100%;
+max-width:500px;
+}
+
+.modal-content input,
+.modal-content select,
+.modal-content textarea{
+width:100%;
+padding:10px;
+margin:5px 0;
+border-radius:8px;
+border:none;
+}
+
+footer{
+background:#111;
+padding:30px;
+margin-top:40px;
+text-align:center;
+border-top:1px solid #222;
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>MAXCELL</h1>
+<div class="cart-btn" onclick="abrirCarrinho()">🛒 Carrinho (<span id="cartCount">0</span>)</div>
+</header>
+
+<h2 style="padding:20px">📱 Produtos</h2>
+<div class="grid" id="produtos"></div>
+
+<section class="assistencia">
+<h3>🔧 Solicite um Orçamento</h3>
+<button class="btn" onclick="abrirOrcamento()">Solicitar Orçamento</button>
+</section>
+
+<!-- MODAL CARRINHO -->
+<div class="modal" id="carrinhoModal">
+<div class="modal-content">
+
+<h3>Finalizar Pedido</h3>
+<div id="listaCarrinho"></div>
+
+<input type="text" id="clienteNome" placeholder="Nome completo">
+<input type="tel" id="clienteTelefone" placeholder="Telefone">
+
+<select id="tipoEntrega">
+<option value="retirada">Retirar na Loja</option>
+<option value="entrega">Entrega</option>
+</select>
+
+<div id="enderecoFields" style="display:none">
+<input type="text" id="rua" placeholder="Rua">
+<input type="text" id="numero" placeholder="Número">
+<input type="text" id="bairro" placeholder="Bairro">
+<input type="text" id="cidade" placeholder="Cidade">
+</div>
+
+<select id="formaPagamento">
+<option value="Dinheiro">Dinheiro</option>
+<option value="Cartão">Cartão</option>
+<option value="Pix">Pix</option>
+</select>
+
+<button class="btn" onclick="finalizarPedido()">Enviar Pedido</button>
+</div>
+</div>
+
+<!-- MODAL ORÇAMENTO -->
+<div class="modal" id="orcamentoModal">
+<div class="modal-content">
+<h3>Solicitar Orçamento</h3>
+<input type="text" id="orcNome" placeholder="Nome">
+<input type="tel" id="orcTelefone" placeholder="Telefone">
+<select id="orcTipo"></select>
+<textarea id="orcObs" placeholder="Descreva o problema"></textarea>
+<button class="btn" onclick="enviarOrcamento()">Enviar</button>
+</div>
+</div>
+
+<footer>
+<p>MAXCELL - Vendas e Assistência Técnica</p>
+<p>© 2026 Todos os direitos reservados a rbpages</p>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+const firebaseConfig={
+apiKey:"AIzaSyAKw1YsAEFxcaW9dSi7RNH85vy2oTfNmco",
+authDomain:"maxcell-22faf.firebaseapp.com",
+projectId:"maxcell-22faf"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+
+let carrinho=[];
+
+/* PRODUTOS */
+onSnapshot(collection(db,"maxcell_produtos"),snap=>{
+produtos.innerHTML="";
+snap.forEach(doc=>{
+const p=doc.data();
+produtos.innerHTML+=`
+<div class="card">
+<img src="${p.imagem}">
+<div class="card-content">
+<h3>${p.nome}</h3>
+<div class="price">R$ ${p.preco}</div>
+<div>Estoque: ${p.estoque}</div>
+<div class="btn" onclick="addCarrinho('${p.nome}','${p.preco}')">Comprar</div>
+</div>
+</div>`;
+});
+});
+
+/* ORÇAMENTOS */
+onSnapshot(collection(db,"maxcell_orcamentos"),snap=>{
+orcTipo.innerHTML="";
+snap.forEach(doc=>{
+const o=doc.data();
+orcTipo.innerHTML+=`<option value="${o.nome}">${o.nome}</option>`;
+});
+});
+
+/* CARRINHO */
+window.addCarrinho=function(nome,preco){
+carrinho.push({nome,preco});
+cartCount.innerText=carrinho.length;
+alert("Produto adicionado!");
+}
+
+window.abrirCarrinho=function(){
+listaCarrinho.innerHTML="";
+carrinho.forEach(item=>{
+listaCarrinho.innerHTML+=`<p>${item.nome} - R$ ${item.preco}</p>`;
+});
+carrinhoModal.style.display="flex";
+}
+
+document.getElementById("tipoEntrega").addEventListener("change",function(){
+enderecoFields.style.display=this.value==="entrega"?"block":"none";
+});
+
+window.finalizarPedido=function(){
+if(carrinho.length===0){alert("Carrinho vazio");return;}
+
+let texto="🛒 *NOVO PEDIDO - MAXCELL*\n\n";
+carrinho.forEach(item=>{
+texto+=`Produto: ${item.nome} - R$ ${item.preco}\n`;
+});
+texto+=`\nCliente: ${clienteNome.value}\nTelefone: ${clienteTelefone.value}\nEntrega: ${tipoEntrega.value}\n`;
+
+if(tipoEntrega.value==="entrega"){
+texto+=`Endereço: ${rua.value}, ${numero.value}, ${bairro.value}, ${cidade.value}\n`;
+}
+
+texto+=`Pagamento: ${formaPagamento.value}`;
+
+window.open(`https://wa.me/5527998290248?text=${encodeURIComponent(texto)}`,"_blank");
+
+carrinho=[];
+cartCount.innerText=0;
+carrinhoModal.style.display="none";
+}
+
+/* ORÇAMENTO */
+window.abrirOrcamento=function(){
+orcamentoModal.style.display="flex";
+}
+
+window.enviarOrcamento=function(){
+let texto="🔧 *NOVO ORÇAMENTO - MAXCELL*\n\n";
+texto+=`Nome: ${orcNome.value}\nTelefone: ${orcTelefone.value}\nServiço: ${orcTipo.value}\nProblema: ${orcObs.value}`;
+window.open(`https://wa.me/5527998290248?text=${encodeURIComponent(texto)}`,"_blank");
+orcamentoModal.style.display="none";
+}
+</script>
+
+</body>
+</html>
