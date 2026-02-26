@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MAXCELL - Vendas & Assistência</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Poppins}
 body{background:linear-gradient(135deg,#0f0f12,#1a1a22);color:#fff}
@@ -111,8 +112,61 @@ margin-top:40px;
 text-align:center;
 border-top:1px solid #222;
 }
+  
+  /* BOTÕES FLUTUANTES */
+.social-float{
+position:fixed;
+right:20px;
+bottom:20px;
+display:flex;
+flex-direction:column;
+gap:12px;
+z-index:999;
+}
+
+.social-float a{
+width:55px;
+height:55px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+color:#fff;
+font-size:26px;
+text-decoration:none;
+box-shadow:0 8px 20px rgba(0,0,0,.4);
+transition:.3s;
+}
+
+.whatsapp-btn{
+background:#25D366;
+}
+
+.instagram-btn{
+background:linear-gradient(45deg,#833ab4,#fd1d1d,#fcb045);
+}
+
+.social-float a:hover{
+transform:scale(1.1);
+}
 </style>
 </head>
+<!-- BOTÕES FLUTUANTES -->
+<div class="social-float">
+
+<a href="https://wa.me/5527998290248" 
+   target="_blank" 
+   class="whatsapp-btn">
+   <i class="fab fa-whatsapp"></i>
+</a>
+
+<a href="https://instagram.com/maxcell027" 
+   target="_blank" 
+   class="instagram-btn">
+   <i class="fab fa-instagram"></i>
+</a>
+
+</div>
 <body>
 
 <header>
@@ -174,7 +228,7 @@ border-top:1px solid #222;
 
 <footer>
 <p>MAXCELL - Vendas e Assistência Técnica</p>
-<p>© 2026 Todos os direitos reservados a rbpages</p>
+<p>© 2026 RBpages Todos os direitos reservados</p>
 </footer>
 
 <script type="module">
